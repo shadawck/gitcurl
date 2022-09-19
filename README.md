@@ -32,7 +32,7 @@ Fetch a zip of the repository.
 gitcurl -z https://github.com/shadawck/gitcurl
 ```
 
-Output with to a specific path
+Output to a specific path.
 
 ```bash
 gitcurl -z https://github.com/shadawck/gitcurl -o /my/clone/path/myzip.zip
