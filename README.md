@@ -39,7 +39,7 @@ gitcurl -z https://github.com/shadawck/gitcurl -o /my/clone/path/myzip.zip
 ```
 
 ```bash
-gitcurl -z https://github.com/shadawck/gitcurl -o /my/clone/path
+gitcurl https://github.com/shadawck/gitcurl -o /my/clone/path
 ```
 
 ## Options
