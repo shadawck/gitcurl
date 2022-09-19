@@ -7,6 +7,7 @@ description = "Clone a directory without using Git but using Curl"
 documentation = "https://docs.rs/gitcurl"
 readme = "./README.md"
 repository = "https://github.com/shadawck/gitcurl"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 clap = "3.2.22"
