@@ -1,0 +1,15 @@
+[package]
+name = "gitcurl"
+version = "0.1.0"
+edition = "2021"
+authors = ["shadawck <shadawck@protonmail.com>"]
+description = "Clone a directory without using Git but using Curl"
+documentation = "https://docs.rs/gitcurl"
+readme = "./README.md"
+
+[dependencies]
+clap = "3.2.22"
+curl = "0.4.44"
+fs_extra = "1.2.0"
+http = "0.2.8"
+zip = "0.6.2"
