@@ -12,12 +12,6 @@ Clone a git repository without the need of git to be installed on your system.
 cargo install gitcurl
 ```
 
-### Linux
-
-### Windows
-
-## How to use gitcurl
-
 Clone a git repository in the current folder.
 
 ```bash
