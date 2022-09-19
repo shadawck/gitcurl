@@ -23,7 +23,7 @@ use std::fs::{self, File};
 use std::io::{Cursor, Read, Write};
 use std::panic;
 
-use clap::{value_parser, App, Arg};
+use clap::{crate_version, value_parser, App, Arg};
 use curl::easy::{Easy2, Handler, WriteError};
 use fs_extra::dir::{move_dir, CopyOptions};
 
@@ -235,7 +235,7 @@ impl<'a> Git<'a> {
 
 fn main() {
     let matches = App::new("cgit")
-        .version("v0.1.0")
+        .version(crate_version!())
         .author("Shadawck")
         .about("Clone git repository with curl")
         .arg(

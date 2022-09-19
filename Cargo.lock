@@ -125,6 +125,7 @@ dependencies = [
  "bitflags",
  "clap_lex",
  "indexmap",
+ "once_cell",
  "strsim",
  "termcolor",
  "textwrap",
@@ -258,7 +259,7 @@ dependencies = [
 
 [[package]]
 name = "gitcurl"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "curl",
