@@ -58,7 +58,7 @@ jobs:
             toolchain: stable
             target: armv7-unknown-linux-gnueabihf
             cross: true
-            artifact_name: target/aarch64-unknown-linux-musl/release/gitcurl
+            artifact_name: target/armv7-unknown-linux-gnueabihf/release/gitcurl
             asset_name: armv7-gnu-linux
 
           ### MACOS
