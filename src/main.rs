@@ -43,12 +43,10 @@ impl Handler for CollectorMemFile {
 /// A gitlab repo is hosted on gitlab.com or self-hosted.
 #[allow(unused)]
 fn build_gitlab_url(dns_name: &str, user_name: &str, repo_name: &str, branch_name: &str) -> String {
-    let mut url = String::from(format!(
+    format!(
         "https://{}/{}/{}/-/master/{}-{}.zip",
         dns_name, user_name, repo_name, repo_name, branch_name
-    ));
-
-    url
+    )
 }
 
 #[derive(Debug)]
@@ -76,9 +74,9 @@ fn check_split_url_length(url: &Vec<&str>, lenght: usize) {
 fn handle_git_extenstion(repo_name: &str) -> &str {
     if repo_name.ends_with(".git") {
         let repo_name = repo_name.split('.').collect::<Vec<&str>>()[0];
-        return repo_name;
+        repo_name
     } else {
-        return repo_name;
+        repo_name
     }
 }
 
@@ -105,9 +103,9 @@ fn check_url_availability(response_code: u32) {
 
 fn handle_zip_extension(file_name: &str) -> String {
     if file_name.ends_with(".zip") {
-        return file_name.to_string();
+        file_name.to_string()
     } else {
-        return format!("{}.zip", file_name);
+        format!("{}.zip", file_name)
     }
 }
 
@@ -122,7 +120,7 @@ impl<'a> Git<'a> {
             let user_name: &UserName = repo_url[1];
             let repo_name: &RepoName = handle_git_extenstion(repo_url[2]);
 
-            return (user_name, repo_name);
+            (user_name, repo_name)
         } else if url.starts_with("github.com") {
             let repo_url: Vec<&str> = url.split_terminator('/').collect();
             check_split_url_length(&repo_url, 3);
@@ -130,7 +128,7 @@ impl<'a> Git<'a> {
             let user_name: &UserName = repo_url[1];
             let repo_name: &RepoName = handle_git_extenstion(repo_url[2]);
 
-            return (user_name, repo_name);
+            (user_name, repo_name)
         } else if !url.starts_with("http") && url.contains(':') {
             let repo_data: Vec<&str> = url.split(':').collect();
             check_split_url_length(&repo_data, 2);
@@ -139,7 +137,7 @@ impl<'a> Git<'a> {
             let repo_name: &RepoName = repo_data[1];
             check_repo_data(user_name, repo_name);
 
-            return (user_name, repo_name);
+            (user_name, repo_name)
         } else {
             panic!()
         }
@@ -195,7 +193,7 @@ impl<'a> Git<'a> {
     }
 
     pub fn extract_zip(&self, raw_compressed_data: Vec<u8>, optional_file_name: Option<&String>) {
-        let data_stream = Cursor::new(raw_compressed_data.clone());
+        let data_stream = Cursor::new(raw_compressed_data);
         let mut zip_archive = zip::ZipArchive::new(data_stream).unwrap();
 
         let file_name = match optional_file_name {
@@ -277,7 +275,7 @@ fn main() {
         .get_matches();
 
     let pre_url: String = matches.get_one::<String>("url").unwrap().to_string();
-    let url: &str = &pre_url.as_str();
+    let url: &str = pre_url.as_str();
 
     let branch_name: Option<&String> = matches.get_one("branch");
 
@@ -337,10 +335,6 @@ mod tests {
     #[test]
     #[should_panic]
     fn with_repo_url_without_repo_name_when_deserialize_input_url_then_fail() {
-        panic::set_hook(Box::new(|_| {
-            println!("Panic with StringDeserialize(\"Bad Url\")")
-        }));
-
         let repo_data = "https://github.com/shadawck".to_string();
         let optional_branch_name = "main".to_string();
         Git::new(&repo_data, Some(&optional_branch_name));
