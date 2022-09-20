@@ -18,4 +18,29 @@ clap = { version = "3.2.22", features = ["cargo"] }
 fs_extra = "1.2.0"
 http = "0.2.8"
 zip = "0.6.2"
+
+
+### LINUX
+[target.x86_64-unknown-linux-gnu.dependencies]
+curl = "0.4.44"
+
+[target.aarch64-unknown-linux-gnu.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+[target.x86_64-unknown-linux-musl.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+[target.aarch64-unknown-linux-musl.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+[target.armv7-unknown-linux-gnueabihf.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+### MACOS
+[target.'cfg(target_os = "macos")'.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+
+### WINDOWS
+[target.'cfg(target_os = "windows")'.dependencies]
 curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
