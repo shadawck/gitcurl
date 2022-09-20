@@ -18,18 +18,4 @@ clap = { version = "3.2.22", features = ["cargo"] }
 fs_extra = "1.2.0"
 http = "0.2.8"
 zip = "0.6.2"
-
-
-[package.metadata.docs.rs]
-default-target = "x86_64-unknown-linux-gnu"
-targets = ["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
-
-[target.x86_64-unknown-linux-gnu.dependencies]
-curl = "0.4.44"
-
-[target.'cfg(target_os = "macos")'.dependencies]
-[target.'cfg(target_os = "windows")'.dependencies]
-[target.x86_64-unknown-linux-musl.dependencies]
-[target.aarch64-unknown-linux-gnu.dependencies]
-[target.armv7-unknown-linux-gnueabihf.dependencies]
 curl = { version = "0.4.44", default-features = false, features = ["rustls"] }

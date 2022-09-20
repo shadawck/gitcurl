@@ -55,6 +55,14 @@ jobs:
             artifact_name: target/release/aarch64-unknown-linux-musl
             asset_name: aarch64-musl-linux
 
+          - build: armv7-gnu-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: armv7-unknown-linux-gnueabihf
+            cross: true
+            artifact_name: target/release/aarch64-unknown-linux-musl
+            asset_name: armv7-gnu-linux
+
           ### MACOS
           - build: x86_64-macos
             os: macos-latest
