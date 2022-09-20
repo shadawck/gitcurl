@@ -89,13 +89,14 @@ jobs:
             artifact_name: target/release/x86_64-pc-windows-msvc
             asset_name: x86_64-msvc-windows
 
-          - build: aarch64-msvc-windows
-            os: windows-latest
-            toolchain: stable
-            target: aarch64-pc-windows-msvc
-            cross: false
-            artifact_name: target/release/aarch64-pc-windows-msvc
-            asset_name: aarch64-msvc-windows
+          ## TODO: ring need to be build for aarch64
+          #- build: aarch64-msvc-windows
+          #  os: windows-latest
+          #  toolchain: stable
+          #  target: aarch64-pc-windows-msvc
+          #  cross: false
+          #  artifact_name: target/release/aarch64-pc-windows-msvc
+          #  asset_name: aarch64-msvc-windows
 
           - build: i686-msvc-windows
             os: windows-latest
