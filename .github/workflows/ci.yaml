@@ -1,8 +1,10 @@
-name: Rust
+name: continous_integration
 
 on:
+  workflow_call:
+  # no options
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
   pull_request:
     branches: ["main"]
 
