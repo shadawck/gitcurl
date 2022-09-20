@@ -26,25 +26,23 @@ jobs:
             toolchain: stable
             target: x86_64-unknown-linux-gnu
             cross: false
-            artifact_name: target/release/x86_64-unknown-linux-gnu
+            artifact_name: target/x86_64-unknown-linux-gnu/release/gitcurl
             asset_name: x86_64-gnu-linux
 
           - build: aarch64-gnu-linux
             os: ubuntu-latest
             toolchain: stable
             target: aarch64-unknown-linux-gnu
-            #linker: gcc-aarch64-linux-gnu
             cross: true
-            artifact_name: target/release/aarch64-unknown-linux-gnu
+            artifact_name: target/aarch64-unknown-linux-gnu/release/gitcurl
             asset_name: aarch64-gnu-linux
 
           - build: x86_64-musl-linux
             os: ubuntu-latest
             toolchain: stable
             target: x86_64-unknown-linux-musl
-            ## musl-tool musl-dev
             cross: true
-            artifact_name: target/release/x86_64-unknown-linux-musl
+            artifact_name: target/x86_64-unknown-linux-musl/release/gitcurl
             asset_name: x86_64-musl-linux
 
           - build: aarch64-musl-linux
@@ -52,7 +50,7 @@ jobs:
             toolchain: stable
             target: aarch64-unknown-linux-musl
             cross: true
-            artifact_name: target/release/aarch64-unknown-linux-musl
+            artifact_name: target/aarch64-unknown-linux-musl/release/gitcurl
             asset_name: aarch64-musl-linux
 
           - build: armv7-gnu-linux
@@ -60,7 +58,7 @@ jobs:
             toolchain: stable
             target: armv7-unknown-linux-gnueabihf
             cross: true
-            artifact_name: target/release/aarch64-unknown-linux-musl
+            artifact_name: target/aarch64-unknown-linux-musl/release/gitcurl
             asset_name: armv7-gnu-linux
 
           ### MACOS
@@ -69,7 +67,7 @@ jobs:
             toolchain: stable
             target: x86_64-apple-darwin
             cross: false
-            artifact_name: target/release/x86_64-apple-darwin
+            artifact_name: target/x86_64-apple-darwin/release/gitcurl
             asset_name: x86_64-macos
 
           - build: aarch64-macos
@@ -77,7 +75,7 @@ jobs:
             toolchain: stable
             target: aarch64-apple-darwin
             cross: false
-            artifact_name: target/release/aarch64-apple-darwin
+            artifact_name: target/aarch64-apple-darwin/release/gitcurl
             asset_name: aarch64-macos
 
           ### WINDOWS
@@ -86,7 +84,7 @@ jobs:
             toolchain: stable
             target: x86_64-pc-windows-msvc
             cross: false
-            artifact_name: target/release/x86_64-pc-windows-msvc
+            artifact_name: target/x86_64-pc-windows-msvc/release/gitcurl.exe
             asset_name: x86_64-msvc-windows
 
           ## TODO: ring need to be build for aarch64
@@ -95,7 +93,7 @@ jobs:
           #  toolchain: stable
           #  target: aarch64-pc-windows-msvc
           #  cross: false
-          #  artifact_name: target/release/aarch64-pc-windows-msvc
+          #  artifact_name: target/aarch64-pc-windows-msvc/release/gitcurl.exe
           #  asset_name: aarch64-msvc-windows
 
           - build: i686-msvc-windows
@@ -103,7 +101,7 @@ jobs:
             toolchain: stable
             target: i686-pc-windows-msvc
             cross: false
-            artifact_name: target/release/i686-pc-windows-msvc
+            artifact_name: target/i686-pc-windows-msvc/release/gitcurl.exe
             asset_name: i686-msvc-windows
 
     steps:
@@ -120,8 +118,11 @@ jobs:
           args: --release --target=${{ matrix.target }}
           use-cross: ${{ matrix.cross }}
 
+      #- name: Create tar archive
+      #  run: tar -czvf ${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
+
       - name: Upload binaries to release
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.asset_name }}
+          name: ${{ matrix.asset_name }} #.tar.gz
           path: ${{ matrix.artifact_name }}
