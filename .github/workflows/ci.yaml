@@ -44,6 +44,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run llvm-cov and upload to codecov
         uses: ./.github/actions/cargo-llvm-cov
+        with:
+          codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     runs-on: ubuntu-latest

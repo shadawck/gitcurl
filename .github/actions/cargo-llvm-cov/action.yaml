@@ -1,6 +1,9 @@
 name: Code Coverage
 description: Setup cargo-llvm and codecov
-#inputs:
+inputs:
+  codecov_token:
+    description: "Codecov token"
+    required: true
 #  output_path:
 #    description: "Output path of the code coverage file"
 #    default: lcov.info
@@ -30,7 +33,7 @@ runs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ inputs.codecov_token }}
         files: lcov.info
         fail_ci_if_error: true
         verbose: true
