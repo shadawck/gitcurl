@@ -1,8 +1,8 @@
-name: continous_integration
+name: continuous_integration
 
 on:
   workflow_call:
-  # no options
+  workflow_dispatch:
   push:
     branches: ["main", "dev"]
   pull_request:

@@ -1,49 +1,114 @@
 name: Publish
 
 on:
-  #workflow_run:
-  #  workflows: ["continous_integration"]
-  #  branches: [main]
-  #  types:
-  #    - completed
-
+  workflow_dispatch:
   push:
     tags:
       - "*"
 
 jobs:
+  call_continuous_workflow:
+    uses: ./.github/workflows/ci.yaml
+
   publish:
-    needs: [continuous_integration]
+    needs: [call_continuous_workflow]
+
     name: Publish for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        name: [linux, windows, macos]
-
         include:
-          - name: linux
+          ### LINUX
+          - build: x86_64-gnu-linux
             os: ubuntu-latest
-            artifact_name: target/release/<name>
-            asset_name: <name>-linux
-          - name: windows
-            os: windows-latest
-            artifact_name: target/release/<name>.exe
-            asset_name: <name>-windows
-          - name: macos
+            toolchain: stable
+            target: x86_64-unknown-linux-gnu
+            cross: false
+            artifact_name: target/release/x86_64-unknown-linux-gnu
+            asset_name: x86_64-gnu-linux
+
+          - build: aarch64-gnu-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: aarch64-unknown-linux-gnu
+            #linker: gcc-aarch64-linux-gnu
+            cross: true
+            artifact_name: target/release/aarch64-unknown-linux-gnu
+            asset_name: aarch64-gnu-linux
+
+          - build: x86_64-musl-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: x86_64-unknown-linux-musl
+            ## musl-tool musl-dev
+            cross: true
+            artifact_name: target/release/x86_64-unknown-linux-musl
+            asset_name: x86_64-musl-linux
+
+          - build: aarch64-musl-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: aarch64-unknown-linux-musl
+            cross: true
+            artifact_name: target/release/aarch64-unknown-linux-musl
+            asset_name: aarch64-musl-linux
+
+          ### MACOS
+          - build: x86_64-macos
             os: macos-latest
-            artifact_name: target/release/<name>
-            asset_name: <name>-macos
+            toolchain: stable
+            target: x86_64-apple-darwin
+            cross: false
+            artifact_name: target/release/x86_64-apple-darwin
+            asset_name: x86_64-macos
+
+          - build: aarch64-macos
+            os: macos-latest
+            toolchain: stable
+            target: aarch64-apple-darwin
+            cross: false
+            artifact_name: target/release/aarch64-apple-darwin
+            asset_name: aarch64-macos
+
+          ### WINDOWS
+          - build: x86_64-msvc-windows
+            os: windows-latest
+            toolchain: stable
+            target: x86_64-pc-windows-msvc
+            cross: false
+            artifact_name: target/release/x86_64-pc-windows-msvc
+            asset_name: x86_64-msvc-windows
+
+          - build: aarch64-msvc-windows
+            os: windows-latest
+            toolchain: stable
+            target: aarch64-pc-windows-msvc
+            cross: false
+            artifact_name: target/release/aarch64-pc-windows-msvc
+            asset_name: aarch64-msvc-windows
+
+          - build: i686-msvc-windows
+            os: windows-latest
+            toolchain: stable
+            target: i686-pc-windows-msvc
+            cross: false
+            artifact_name: target/release/i686-pc-windows-msvc
+            asset_name: i686-msvc-windows
 
     steps:
       - uses: actions/checkout@v1
-
-      - uses: actions-rs/toolchain@v1
+      - uses: ./.github/actions/setup-rust
         with:
-          profile: minimal
-          toolchain: stable
+          target: ${{ matrix.target }}
+          toolchain: ${{ matrix.toolchain }}
 
       - name: Build
-        run: cargo build --release --locked
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }}
+          use-cross: ${{ matrix.cross }}
 
       - name: Upload binaries to release
         uses: actions/upload-artifact@v2

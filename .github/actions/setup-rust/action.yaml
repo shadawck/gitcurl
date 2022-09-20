@@ -29,4 +29,4 @@ runs:
         components: ${{ inputs.components }}
         profile: minimal
 
-    #- uses: Swatinem/rust-cache@v1.3.0
+    - uses: Swatinem/rust-cache@v1.3.0
