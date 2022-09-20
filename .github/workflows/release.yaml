@@ -106,7 +106,7 @@ jobs:
             asset_name: i686-msvc-windows
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-rust
         with:
           target: ${{ matrix.target }}
