@@ -27,6 +27,8 @@ targets = ["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
 [target.x86_64-unknown-linux-gnu.dependencies]
 curl = "0.4.44"
 
+[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(target_os = "windows")'.dependencies]
 [target.x86_64-unknown-linux-musl.dependencies]
 [target.aarch64-unknown-linux-gnu.dependencies]
 [target.armv7-unknown-linux-gnueabihf.dependencies]
