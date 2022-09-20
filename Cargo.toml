@@ -7,11 +7,27 @@ description = "Clone a directory without using Git but using Curl"
 documentation = "https://docs.rs/gitcurl"
 readme = "./README.md"
 repository = "https://github.com/shadawck/gitcurl"
+homepage = "https://github.com/shadawck/gitcurl"
 license = "MIT OR Apache-2.0"
+keywords = ["cli", "git", "curl", "pentest", "utility"]
+categories = ["command-line-utilities"]
+
 
 [dependencies]
 clap = { version = "3.2.22", features = ["cargo"] }
-curl = "0.4.44"
 fs_extra = "1.2.0"
 http = "0.2.8"
 zip = "0.6.2"
+
+
+[package.metadata.docs.rs]
+default-target = "x86_64-unknown-linux-gnu"
+targets = ["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
+
+[target.x86_64-unknown-linux-gnu.dependencies]
+curl = "0.4.44"
+
+[target.x86_64-unknown-linux-musl.dependencies]
+[target.aarch64-unknown-linux-gnu.dependencies]
+[target.armv7-unknown-linux-gnueabihf.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }

@@ -12,6 +12,16 @@ Clone a git repository without the need of git to be installed on your system.
 cargo install gitcurl
 ```
 
+### Pre-compiled binaries
+
+| OS      | Arch    | URL                                                          |
+| ------- | ------- | ------------------------------------------------------------ |
+| linux   | x86\_64 | <https://github.com/shadawck/gitcurl/releases/latest/download/gitcurl-x86_64-unknown-linux-gnu.tgz> |
+| linux   | armv7   | <https://github.com/shadawck/gitcurl/releases/latest/download/gitcurl-x86_64-unknown-linux-musl.tgz> |
+| linux   | arm64   | <https://github.com/shadawck/gitcurl/releases/latest/download/gitcurl-aarch64-unknown-linux-musl.tgz> |
+
+### How to use gitcurl
+
 Clone a git repository in the current folder.
 
 ```bash
