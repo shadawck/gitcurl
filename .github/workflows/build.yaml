@@ -153,7 +153,7 @@ jobs:
 
       ### if matrix.os == ubuntu or macos
       - name: package and create tar archive for linux and macos
-        if: contains(matrix.os, 'ubuntu') or contains(matrix.os, 'macos')
+        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
         run: |
           mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
           cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
