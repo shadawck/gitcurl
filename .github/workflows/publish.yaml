@@ -3,6 +3,7 @@ name: Publish
 on:
   workflow_dispatch:
   push:
+    branches: ["main"]
     tags:
       - "v*.*.*"
 
@@ -11,7 +12,7 @@ jobs:
     uses: ./.github/workflows/build.yaml
 
   download_artifact:
-    needs: [call_build_workflow]
+    needs: call_build_workflow
     runs-on: ubuntu-latest
 
     steps:
@@ -26,11 +27,6 @@ jobs:
       - name: ls check
         run: ls -la download
 
-  ### test all bin in each environnment
-  #unit_test:
-  #  needs: [package_artifact]
-  #  runs-on: ubuntu-latest
-
   gh_release:
     needs: [download_artifact]
     runs-on: ubuntu-latest
@@ -40,5 +36,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: download/*
+          files: download/
     ### make a github release with tags version and packaged artifact

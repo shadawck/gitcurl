@@ -4,9 +4,8 @@ name: Build
 on:
   workflow_dispatch:
   workflow_call:
-  #push:
-  #  tags:
-  #    - "*"
+  push:
+    branches: ["main"]
 
 jobs:
   call_continuous_workflow:
@@ -160,19 +159,19 @@ jobs:
           echo version output in verify_version: ${{ format('{0}', needs.verify_version.outputs.version)}}
           echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.verify_version.outputs.version) }} | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: package and create tar archive for linux and macos
-        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
+      - name: package and create tar archive
+        #if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
         run: |
           mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
           cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
           tar -czvf ${{ env.RELEASE_ARTIFACT_PATH }}.tgz ${{ env.RELEASE_ARTIFACT_PATH }}
 
-      - name: package and create tar archive for windows
-        if: contains(matrix.os, 'windows')
-        run: |
-          mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
-          cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
-          tar -czvf ${{ env.RELEASE_ARTIFACT_PATH }}.tgz ${{ env.RELEASE_ARTIFACT_PATH }}
+      #- name: package and create tar archive for windows
+      #  if: contains(matrix.os, 'windows')
+      #  run: |
+      #    mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
+      #    cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
+      #    tar -czvf ${{ env.RELEASE_ARTIFACT_PATH }}.tgz ${{ env.RELEASE_ARTIFACT_PATH }}
 
       - name: Upload binaries to release
         uses: actions/upload-artifact@v3
