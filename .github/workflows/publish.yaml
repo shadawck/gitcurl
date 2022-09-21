@@ -8,11 +8,46 @@ on:
       - "v*.*.*"
 
 jobs:
-  #call_build_workflow:
-  #  uses: ./.github/workflows/build.yaml
+  verify_version:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.cargo_version }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-rust
+
+      - name: Fetch cargo.toml version
+        run: |
+          echo CURRENT_VERSION=$(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version') >> $GITHUB_ENV
+
+      - name: Register env.CURRENT_VERSION as outputs value for later jobs
+        id: version
+        run: |
+          echo ${{ format('v{0}', env.CURRENT_VERSION) }}
+          echo ::set-output name=cargo_version::${{ format('v{0}', env.CURRENT_VERSION) }}
+
+      - name: Fetch last tag release version
+        id: previous_tag_version
+        uses: WyriHaximus/github-action-get-previous-tag@v1
+        with:
+          fallback: v0.1.0 # Start version of new crate
+
+      - name: Compare current version and last tag release version
+        # Bypass issue for if statement: https://github.com/actions/runner/issues/1173
+        if: format('{0}', steps.version.outputs.cargo_version) == format('{0}', steps.previous_tag_version.outputs.tag )
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('Current cargo.toml version and previous release tag are the same. Bump your cargo.toml version')
 
   download_artifact:
     runs-on: ubuntu-latest
+    needs: verify_version
 
     steps:
       - name: Download artifact from build workflow
@@ -23,17 +58,16 @@ jobs:
           if_no_artifact_found: fail
           path: download
 
-      - name: ls check
-        run: ls -la download
-
   gh_release:
-    needs: [download_artifact]
+    needs: [download_artifact, verify_version]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: download/
-    ### make a github release with tags version and packaged artifact
+          files: download/*
+          tag_name: ${{ needs.verify_version.outputs.version }}
+          draft: true
+          fail_on_unmatched_files: true

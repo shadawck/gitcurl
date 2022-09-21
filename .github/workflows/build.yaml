@@ -11,7 +11,7 @@ jobs:
   call_continuous_workflow:
     uses: ./.github/workflows/ci.yaml
 
-  verify_version:
+  get_version:
     needs: call_continuous_workflow
     runs-on: ubuntu-latest
 
@@ -35,22 +35,8 @@ jobs:
           echo ${{ format('v{0}', env.CURRENT_VERSION) }}
           echo ::set-output name=cargo_version::${{ format('v{0}', env.CURRENT_VERSION) }}
 
-      - name: Fetch last tag release version
-        id: previous_tag_version
-        uses: WyriHaximus/github-action-get-previous-tag@v1
-        with:
-          fallback: v0.1.0 # Start version of new crate
-
-      - name: Compare current version and last tag release version
-        # Bypass issue for if statement: https://github.com/actions/runner/issues/1173
-        if: format('{0}', steps.version.outputs.cargo_version) == format('{0}', steps.previous_tag_version.outputs.tag )
-        uses: actions/github-script@v3
-        with:
-          script: |
-            core.setFailed('Current cargo.toml version and previous release tag are the same. Bump your cargo.toml version')
-
   build:
-    needs: verify_version
+    needs: get_version
 
     name: Build for ${{ matrix.os }}-${{ matrix.target }}
     runs-on: ${{ matrix.os }}
@@ -150,28 +136,20 @@ jobs:
       - name: Create RELEASE_ARTIFACT_PATH on linux and macos
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
         run: |
-          echo version output in verify_version: ${{ format('{0}', needs.verify_version.outputs.version)}}
-          echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.verify_version.outputs.version) }} >> $GITHUB_ENV
+          echo version output in get_version: ${{ format('{0}', needs.get_version.outputs.version)}}
+          echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.get_version.outputs.version) }} >> $GITHUB_ENV
 
       - name: Create RELEASE_ARTIFACT_PATH on windows
         if: contains(matrix.os, 'windows')
         run: |
-          echo version output in verify_version: ${{ format('{0}', needs.verify_version.outputs.version)}}
-          echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.verify_version.outputs.version) }} | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo version output in get_version: ${{ format('{0}', needs.get_version.outputs.version)}}
+          echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.get_version.outputs.version) }} | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: package and create tar archive
-        #if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
         run: |
           mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
           cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
           tar -czvf ${{ env.RELEASE_ARTIFACT_PATH }}.tgz ${{ env.RELEASE_ARTIFACT_PATH }}
-
-      #- name: package and create tar archive for windows
-      #  if: contains(matrix.os, 'windows')
-      #  run: |
-      #    mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
-      #    cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
-      #    tar -czvf ${{ env.RELEASE_ARTIFACT_PATH }}.tgz ${{ env.RELEASE_ARTIFACT_PATH }}
 
       - name: Upload binaries to release
         uses: actions/upload-artifact@v3
