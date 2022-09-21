@@ -16,6 +16,9 @@ jobs:
     needs: [call_continuous_workflow]
     runs-on: ubuntu-latest
 
+    outputs:
+      version: ${{ steps.version.output.cargo_version }}
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -23,13 +26,12 @@ jobs:
 
       - uses: ./.github/actions/setup-rust
 
-      - name: ls check
-        run: ls -la
-
       - name: Fetch cargo.toml version
+        id: version
         run: |
           echo CURRENT_VERSION=$(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version') >> $GITHUB_ENV
-          echo ${{ env.CURRENT_VERSION }}
+          echo ${{ format('v{0}', env.CURRENT_VERSION) }}
+          echo ::set-output name=version::${{ format('v{0}', env.CURRENT_VERSION) }}
 
       - name: Compare current version and last tag release version
         id: previous_tag_version
@@ -148,12 +150,14 @@ jobs:
           echo $CURRENT_VERSION
           echo "RELEASE_ARTIFACT_PATH=gitcurl-${{ matrix.target }}-v$CURRENT_VERSION" >> $GITHUB_ENV
 
+      ### if matrix.os == ubuntu or macos
       - name: package and create tar archive
         run: |
           mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
           cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
           tar -czvf ${{ env.RELEASE_ARTIFACT_PATH }}.tgz ${{ env.RELEASE_ARTIFACT_PATH }}
 
+      ### if matrix.os == windows
       - name: Upload binaries to release
         uses: actions/upload-artifact@v3
         with:
