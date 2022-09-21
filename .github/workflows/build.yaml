@@ -149,7 +149,7 @@ jobs:
           use-cross: ${{ matrix.cross }}
 
       - name: Create Path env variable
-        run: RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.verify_version.outputs.version) }} >> $GITHUB_ENV
+        run: echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.verify_version.outputs.version) }} >> $GITHUB_ENV
 
       ### if matrix.os == ubuntu or macos
       - name: package and create tar archive for linux and macos
