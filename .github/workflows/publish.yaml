@@ -1,0 +1,44 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  call_build_workflow:
+    uses: ./.github/workflows/build.yaml
+
+  download_artifact:
+    needs: [call_build_workflow]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact from build workflow
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build.yml
+          workflow_conclusion: success
+          if_no_artifact_found: fail
+          path: download
+
+      - name: ls check
+        run: ls -la download
+
+  ### test all bin in each environnment
+  #unit_test:
+  #  needs: [package_artifact]
+  #  runs-on: ubuntu-latest
+
+  gh_release:
+    needs: [download_artifact]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: download/*
+    ### make a github release with tags version and packaged artifact

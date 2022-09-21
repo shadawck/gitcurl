@@ -1,0 +1,160 @@
+name: Build
+### Will be called by publish workflow or manually
+
+on:
+  workflow_dispatch:
+  #push:
+  #  tags:
+  #    - "*"
+
+jobs:
+  call_continuous_workflow:
+    uses: ./.github/workflows/ci.yaml
+
+  verify_version:
+    needs: [call_continuous_workflow]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          target: ${{ matrix.target }}
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Fetch cargo.toml version
+        id: current_version
+        run: echo ::set-output name=version::cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version'
+
+      - name: Compare current version and last tag release version
+        id: previous_tag_version
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: 0.1.0 # Start version of new crate
+
+      - name: Compare current version and last tag release version
+        if: ${{ steps.current_version.output.version }} == ${{ steps.previous_tag_version.outputs.tag }}
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('Current cargo.toml version and previous release tag are the same. Bump your cargo.toml version')
+
+  build:
+    needs: [verify_version]
+
+    name: Build for ${{ matrix.os }}-${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          ### LINUX
+          - build: x86_64-gnu-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: x86_64-unknown-linux-gnu
+            cross: false
+            artifact_path: target/x86_64-unknown-linux-gnu/release/gitcurl
+
+          - build: aarch64-gnu-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: aarch64-unknown-linux-gnu
+            cross: true
+            artifact_path: target/aarch64-unknown-linux-gnu/release/gitcurl
+
+          - build: x86_64-musl-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: x86_64-unknown-linux-musl
+            cross: true
+            artifact_path: target/x86_64-unknown-linux-musl/release/gitcurl
+
+          - build: aarch64-musl-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: aarch64-unknown-linux-musl
+            cross: true
+            artifact_path: target/aarch64-unknown-linux-musl/release/gitcurl
+
+          - build: armv7-gnu-linux
+            os: ubuntu-latest
+            toolchain: stable
+            target: armv7-unknown-linux-gnueabihf
+            cross: true
+            artifact_path: target/armv7-unknown-linux-gnueabihf/release/gitcurl
+
+          ### MACOS
+          - build: x86_64-macos
+            os: macos-latest
+            toolchain: stable
+            target: x86_64-apple-darwin
+            cross: false
+            artifact_path: target/x86_64-apple-darwin/release/gitcurl
+
+          - build: aarch64-macos
+            os: macos-latest
+            toolchain: stable
+            target: aarch64-apple-darwin
+            cross: false
+            artifact_path: target/aarch64-apple-darwin/release/gitcurl
+
+          ### WINDOWS
+          - build: x86_64-msvc-windows
+            os: windows-latest
+            toolchain: stable
+            target: x86_64-pc-windows-msvc
+            cross: false
+            artifact_path: target/x86_64-pc-windows-msvc/release/gitcurl.exe
+
+          - build: i686-msvc-windows
+            os: windows-latest
+            toolchain: stable
+            target: i686-pc-windows-msvc
+            cross: false
+            artifact_path: target/i686-pc-windows-msvc/release/gitcurl.exe
+
+          ## TODO: ring need to be build for aarch64
+          #- build: aarch64-msvc-windows
+          #  os: windows-latest
+          #  toolchain: stable
+          #  target: aarch64-pc-windows-msvc
+          #  cross: false
+          #  artifact_path: target/aarch64-pc-windows-msvc/release/gitcurl.exe
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust
+        with:
+          target: ${{ matrix.target }}
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }}
+          use-cross: ${{ matrix.cross }}
+
+      - name: Fetch cargo.toml version
+        id: current_version
+        run: echo ::set-output name=version::cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version'
+
+      - name: Create Path env variable
+        run: echo "RELEASE_ARTIFACT_PATH=gitcurl-${{ matrix.target }}-v${{ steps.current_version.output.version }}" >> $GITHUB_ENV
+
+      - name: package and create tar archive
+        run: |
+          mkdir ${{ env.RELEASE_ARTIFACT_PATH }}
+          cp ${{ matrix.artifact_path }} ${{ env.RELEASE_ARTIFACT_PATH }}
+          tar -czvf ${{ env.RELEASE_ARTIFACT_PATH }}.tgz ${{ env.RELEASE_ARTIFACT_PATH }}
+
+      - name: Upload binaries to release
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.RELEASE_ARTIFACT_PATH }}.tgz
+          path: ${{ env.RELEASE_ARTIFACT_PATH }}.tgz
