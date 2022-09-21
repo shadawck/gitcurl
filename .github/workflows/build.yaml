@@ -23,6 +23,9 @@ jobs:
 
       - uses: ./.github/actions/setup-rust
 
+      - name: ls check
+        run: ls -la
+
       - name: Fetch cargo.toml version
         id: current_version
         run: echo ::set-output name=version::cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version'
@@ -137,8 +140,6 @@ jobs:
           command: build
           args: --release --target=${{ matrix.target }}
           use-cross: ${{ matrix.cross }}
-      - name: ls check
-        run: ls -la
 
       - name: Fetch cargo.toml version
         id: current_version
