@@ -28,16 +28,16 @@ jobs:
 
       - name: Fetch cargo.toml version
         id: current_version
-        run: echo $(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version') # ::set-output name=version::
+        run: echo CURRENT_VERSION=$(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version') >> $GITHUB_ENV
 
       - name: Compare current version and last tag release version
         id: previous_tag_version
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        uses: WyriHaximus/github-action-get-previous-tag@v1
         with:
           fallback: 0.1.0 # Start version of new crate
 
       - name: Compare current version and last tag release version
-        if: ${{ steps.current_version.output.version }} == ${{ steps.previous_tag_version.outputs.tag }}
+        if: ${{ env.CURRENT_VERSION }} == ${{ steps.previous_tag_version.outputs.tag }}
         uses: actions/github-script@v3
         with:
           script: |
@@ -141,12 +141,8 @@ jobs:
           args: --release --target=${{ matrix.target }}
           use-cross: ${{ matrix.cross }}
 
-      - name: Fetch cargo.toml version
-        id: current_version
-        run: echo ::set-output name=version::cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version'
-
       - name: Create Path env variable
-        run: echo "RELEASE_ARTIFACT_PATH=gitcurl-${{ matrix.target }}-v${{ steps.current_version.output.version }}" >> $GITHUB_ENV
+        run: echo "RELEASE_ARTIFACT_PATH=gitcurl-${{ matrix.target }}-v${{ env.CURRENT_VERSION }}" >> $GITHUB_ENV
 
       - name: package and create tar archive
         run: |
