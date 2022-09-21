@@ -8,8 +8,8 @@ on:
       - "v*.*.*"
 
 jobs:
-  call_build_workflow:
-    uses: ./.github/workflows/build.yaml
+  #call_build_workflow:
+  #  uses: ./.github/workflows/build.yaml
 
   download_artifact:
     needs: call_build_workflow
