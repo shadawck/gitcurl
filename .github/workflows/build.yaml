@@ -30,6 +30,7 @@ jobs:
         run: |
           echo CURRENT_VERSION=$(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version') >> $GITHUB_ENV
           echo ${{ env.CURRENT_VERSION }}
+
       - name: Compare current version and last tag release version
         id: previous_tag_version
         uses: WyriHaximus/github-action-get-previous-tag@v1
@@ -143,7 +144,9 @@ jobs:
           use-cross: ${{ matrix.cross }}
 
       - name: Create Path env variable
-        run: echo "RELEASE_ARTIFACT_PATH=gitcurl-${{ matrix.target }}-v${{ env.CURRENT_VERSION }}" >> $GITHUB_ENV
+        run: |
+          echo $CURRENT_VERSION
+          echo "RELEASE_ARTIFACT_PATH=gitcurl-${{ matrix.target }}-v$CURRENT_VERSION" >> $GITHUB_ENV
 
       - name: package and create tar archive
         run: |
