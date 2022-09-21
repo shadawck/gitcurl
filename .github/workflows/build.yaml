@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml
 
   verify_version:
-    needs: [call_continuous_workflow]
+    needs: call_continuous_workflow
     runs-on: ubuntu-latest
 
     outputs:
@@ -27,11 +27,11 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - name: Fetch cargo.toml version
-        id: version
         run: |
           echo CURRENT_VERSION=$(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version') >> $GITHUB_ENV
 
       - name: Register env.CURRENT_VERSION as outputs value for later jobs
+        id: version
         run: |
           echo ${{ format('v{0}', env.CURRENT_VERSION) }}
           echo ::set-output name=cargo_version::${{ format('v{0}', env.CURRENT_VERSION) }}
@@ -51,7 +51,7 @@ jobs:
             core.setFailed('Current cargo.toml version and previous release tag are the same. Bump your cargo.toml version')
 
   build:
-    needs: [verify_version]
+    needs: verify_version
 
     name: Build for ${{ matrix.os }}-${{ matrix.target }}
     runs-on: ${{ matrix.os }}
@@ -149,7 +149,9 @@ jobs:
           use-cross: ${{ matrix.cross }}
 
       - name: Create Path env variable
-        run: echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.verify_version.outputs.version) }} >> $GITHUB_ENV
+        run: |
+          echo version output in verify_version: ${{ format('{0}', needs.verify_version.outputs.version)}}
+          echo RELEASE_ARTIFACT_PATH=${{format('gitcurl-{0}-{1}', matrix.target, needs.verify_version.outputs.version) }} >> $GITHUB_ENV
 
       ### if matrix.os == ubuntu or macos
       - name: package and create tar archive for linux and macos
