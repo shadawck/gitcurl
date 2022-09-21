@@ -45,26 +45,35 @@ jobs:
           script: |
             core.setFailed('Current cargo.toml version and previous release tag are the same. Bump your cargo.toml version')
 
-  download_artifact:
-    runs-on: ubuntu-latest
-    needs: verify_version
+  #download_artifact:
+  #  runs-on: ubuntu-latest
+  #  needs: verify_version
+  #  steps:
+  #    - name: Download artifact from build workflow
+  #      uses: dawidd6/action-download-artifact@v2
+  #      with:
+  #        workflow: build.yaml
+  #        workflow_conclusion: success
+  #        if_no_artifact_found: fail
 
+  gh_release:
+    needs: [verify_version]
+    runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - name: Download artifact from build workflow
         uses: dawidd6/action-download-artifact@v2
         with:
           workflow: build.yaml
           workflow_conclusion: success
           if_no_artifact_found: fail
-
-  gh_release:
-    needs: [download_artifact, verify_version]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+          path: download
 
       - name: check file presence
-        run: ls -la
+        run: |
+          ls -la
+          ls -la download/*/*.tgz
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -72,4 +81,4 @@ jobs:
           tag_name: ${{ needs.verify_version.outputs.version }}
           draft: true
           fail_on_unmatched_files: true
-          files: gitcurl-*/gitcurl-*.tgz
+          files: download/*/*.tgz
