@@ -67,7 +67,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: download/*
           tag_name: ${{ needs.verify_version.outputs.version }}
           draft: true
           fail_on_unmatched_files: true
+          files: download/*/*.tgz
