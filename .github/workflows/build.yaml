@@ -37,11 +37,8 @@ jobs:
           fallback: v0.1.0 # Start version of new crate
 
       - name: Compare current version and last tag release version
-        if: v${{ env.CURRENT_VERSION }} == ${{ steps.previous_tag_version.outputs.tag }}
-        run: |
-          echo v${{ env.CURRENT_VERSION }}
-          echo TAG_VERSION=${{ steps.previous_tag_version.outputs.tag }}
-
+        # Bypass issue for if statement: https://github.com/actions/runner/issues/1173
+        if: format('v{0}', env.CURRENT_VERSION) == format('{0}', steps.previous_tag_version.outputs.tag )
         uses: actions/github-script@v3
         with:
           script: |
