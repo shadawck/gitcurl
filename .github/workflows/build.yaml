@@ -22,9 +22,6 @@ jobs:
           fetch-depth: 0
 
       - uses: ./.github/actions/setup-rust
-        with:
-          target: ${{ matrix.target }}
-          toolchain: ${{ matrix.toolchain }}
 
       - name: Fetch cargo.toml version
         id: current_version
