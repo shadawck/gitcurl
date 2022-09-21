@@ -28,7 +28,7 @@ jobs:
 
       - name: Fetch cargo.toml version
         id: current_version
-        run: echo ::set-output name=version::cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version'
+        run: echo $(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name=="gitcurl") | .version') # ::set-output name=version::
 
       - name: Compare current version and last tag release version
         id: previous_tag_version
