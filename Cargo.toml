@@ -19,6 +19,10 @@ fs_extra = "1.2.0"
 http = "0.2.8"
 zip = "0.6.2"
 
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }-v{ version }.{ archive-format }"
+bin-dir = "{ name }-{ target }-v{ version }/{ bin }{ binary-ext }"
+pkg-fmt = "tar.gz"
 
 ### LINUX
 [target.x86_64-unknown-linux-gnu.dependencies]
