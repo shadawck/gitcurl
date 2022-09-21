@@ -12,7 +12,6 @@ jobs:
   #  uses: ./.github/workflows/build.yaml
 
   download_artifact:
-    needs: call_build_workflow
     runs-on: ubuntu-latest
 
     steps:
