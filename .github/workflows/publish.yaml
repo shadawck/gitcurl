@@ -56,7 +56,6 @@ jobs:
           workflow: build.yaml
           workflow_conclusion: success
           if_no_artifact_found: fail
-          path: ./download
 
   gh_release:
     needs: [download_artifact, verify_version]
@@ -70,4 +69,4 @@ jobs:
           tag_name: ${{ needs.verify_version.outputs.version }}
           draft: true
           fail_on_unmatched_files: true
-          files: ./download/gitcurl*/*.tgz
+          files: gitcurl-*/gitcurl-*.tgz
