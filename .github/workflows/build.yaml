@@ -137,6 +137,8 @@ jobs:
           command: build
           args: --release --target=${{ matrix.target }}
           use-cross: ${{ matrix.cross }}
+      - name: ls check
+        run: ls -la
 
       - name: Fetch cargo.toml version
         id: current_version
