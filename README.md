@@ -14,11 +14,15 @@ cargo install gitcurl
 
 ### Pre-compiled binaries
 
-| OS      | Arch    | URL                                                          |
-| ------- | ------- | ------------------------------------------------------------ |
-| linux   | x86\_64 | <https://github.com/shadawck/gitcurl/releases/latest/download/gitcurl-x86_64-unknown-linux-gnu.tgz> |
-| linux   | armv7   | <https://github.com/shadawck/gitcurl/releases/latest/download/gitcurl-x86_64-unknown-linux-musl.tgz> |
-| linux   | arm64   | <https://github.com/shadawck/gitcurl/releases/latest/download/gitcurl-aarch64-unknown-linux-musl.tgz> |
+| OS             | Arch    | URL                                                             |
+| -------------- | ------- | --------------------------------------------------------------- |
+| linux          | x86\_64 | <https://github.com/shadawck/gitcurl/releases/latest/download/> |
+| linux          | armv7   | <https://github.com/shadawck/gitcurl/releases/latest/download/> |
+| linux          | arm64   | <https://github.com/shadawck/gitcurl/releases/latest/download/> |
+| macos          | x86\_64 | <https://github.com/shadawck/gitcurl/releases/latest/download/> |
+| macos          | arm64   | <https://github.com/shadawck/gitcurl/releases/latest/download/> |
+| windows (msvc) | x86\_64 | <https://github.com/shadawck/gitcurl/releases/latest/download/> |
+| windows (msvc) | i686    | <https://github.com/shadawck/gitcurl/releases/latest/download/> |
 
 ### How to use gitcurl
 
