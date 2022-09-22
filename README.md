@@ -1,6 +1,6 @@
 # Gitcurl
 
-[![Docs](https://docs.rs/gitcurl/badge.svg)](<https://docs.rs/gitcurl/>) [![crates.io](https://img.shields.io/crates/v/gitcurl.svg)](https://crates.io/crates/gitcurl)
+[![crates.io](https://img.shields.io/crates/v/gitcurl.svg)](https://crates.io/crates/gitcurl) [![Build](https://github.com/shadawck/gitcurl/actions/workflows/build.yaml/badge.svg)](https://github.com/shadawck/gitcurl/actions/workflows/build.yaml)
 
 Clone a git repository without the need of git to be installed on your system.
 
