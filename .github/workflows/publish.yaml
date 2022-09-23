@@ -44,21 +44,11 @@ jobs:
           script: |
             core.setFailed('Current cargo.toml version and previous release tag are the same. Bump your cargo.toml version')
 
-  #download_artifact:
-  #  runs-on: ubuntu-latest
-  #  needs: verify_version
-  #  steps:
-  #    - name: Download artifact from build workflow
-  #      uses: dawidd6/action-download-artifact@v2
-  #      with:
-  #        workflow: build.yaml
-  #        workflow_conclusion: success
-  #        if_no_artifact_found: fail
-
   gh_release:
     needs: [verify_version]
     runs-on: ubuntu-latest
     steps:
+      - uses: ./.github/actions/setup-rust
       - uses: actions/checkout@v3
 
       - name: Download artifact from build workflow
@@ -74,6 +64,11 @@ jobs:
           ls -la
           ls -la download/*/*.tgz
 
+      - name: Generate changelog
+        run: |
+          cargo install convco
+          convo changelog > auto_changelog.md
+
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
@@ -81,3 +76,4 @@ jobs:
           draft: true
           fail_on_unmatched_files: true
           files: download/*/*.tgz
+          body_path: auto_changelog.md
