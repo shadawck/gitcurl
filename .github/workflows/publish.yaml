@@ -67,7 +67,7 @@ jobs:
       - name: Generate changelog
         run: |
           cargo install convco
-          convo changelog > auto_changelog.md
+          convco changelog > auto_changelog.md
 
       - name: Publish github Release
         uses: softprops/action-gh-release@v1
