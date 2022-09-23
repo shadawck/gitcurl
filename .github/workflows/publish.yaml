@@ -48,8 +48,8 @@ jobs:
     needs: [verify_version]
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/setup-rust
       - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust
 
       - name: Download artifact from build workflow
         uses: dawidd6/action-download-artifact@v2
