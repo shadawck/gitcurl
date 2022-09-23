@@ -13,7 +13,8 @@ cargo install gitcurl
 ```
 
 ### Pre-compiled binaries
-For each release, pre-compiled version are available : https://github.com/shadawck/gitcurl/releases/latest/
+
+For each release, pre-compiled version are available : <https://github.com/shadawck/gitcurl/releases/latest/>
 
 | OS             | Arch    |
 | -------------- | ------- |
@@ -25,12 +26,12 @@ For each release, pre-compiled version are available : https://github.com/shadaw
 | windows (msvc) | x86\_64 |
 | windows (msvc) | i686    |
 
-### How to use gitcurl
+## How to use gitcurl
 
 Clone a git repository in the current folder:
 
 - On github:
-    
+
     ```bash
     gitcurl https://github.com/shadawck/gitcurl
     # or 
