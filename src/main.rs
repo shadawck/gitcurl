@@ -346,12 +346,14 @@ mod tests {
     use super::*;
 
     const GITHUB_URL: &str = "https://codeload.github.com/shadawck/rust-trend/zip/refs/heads/main";
-    const GITLAB_URL: &str = "";
-    const CUSTOM_GITLAB_URL: &str = "";
+    const GITLAB_URL: &str =
+        "https://gitlab.com/Fract/sample-project/-/archive/master/sample-project-master.zip";
+    const CUSTOM_GITLAB_URL: &str =
+        "https://gitlab.kitware.com/utils/rust-gitlab/-/archive/master/rust-gitlab-master.zip";
 
     #[test]
-    fn with_full_repo_url_when_deserialize_input_url_then_construct_valid_url() {
-        let full_repo_url = "https://github.com/shadawck/rust-trend/".to_string();
+    fn with_github_full_repo_url_when_deserialize_input_url_then_construct_valid_url() {
+        let full_repo_url = "https://github.com/shadawck/rust-trend".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&full_repo_url, Some(&optional_branch_name));
 
@@ -359,7 +361,8 @@ mod tests {
     }
 
     #[test]
-    fn with_repo_url_without_http_scheme_when_deserialize_input_url_then_construct_valid_url() {
+    fn with_github_repo_url_without_http_scheme_when_deserialize_input_url_then_construct_valid_url(
+    ) {
         let url_without_scheme = "github.com/shadawck/rust-trend".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&url_without_scheme, Some(&optional_branch_name));
@@ -368,12 +371,61 @@ mod tests {
     }
 
     #[test]
-    fn with_repo_data_when_deserialize_input_url_then_construct_valid_url() {
+    fn with_github_repo_data_when_deserialize_input_url_then_construct_valid_url() {
         let repo_data = "github:shadawck:rust-trend".to_string();
-        let optional_branch_name = "main".to_string();
-        let git = Git::new(&repo_data, Some(&optional_branch_name));
+        let git = Git::new(&repo_data, None);
 
         assert_eq!(git.git_zip_url, GITHUB_URL)
+    }
+
+    #[test]
+    fn with_gitlab_full_repo_url_when_deserialize_input_url_then_construct_valid_url() {
+        let full_repo_url = "https://gitlab.com/Fract/sample-project".to_string();
+        let git = Git::new(&full_repo_url, None);
+
+        assert_eq!(git.git_zip_url, GITLAB_URL)
+    }
+
+    #[test]
+    fn with_gitlab_repo_url_without_http_scheme_when_deserialize_input_url_then_construct_valid_url(
+    ) {
+        let url_without_scheme = "gitlab.com/Fract/sample-project".to_string();
+        let git = Git::new(&url_without_scheme, None);
+
+        assert_eq!(git.git_zip_url, GITLAB_URL)
+    }
+
+    #[test]
+    fn with_gitlab_repo_data_when_deserialize_input_url_then_construct_valid_url() {
+        let repo_data = "gitlab:Fract:sample-project".to_string();
+        let git = Git::new(&repo_data, None);
+
+        assert_eq!(git.git_zip_url, GITLAB_URL)
+    }
+
+    #[test]
+    fn with_on_premise_gitlab_full_repo_url_when_deserialize_input_url_then_construct_valid_url() {
+        let full_repo_url = "https://gitlab.kitware.com/utils/rust-gitlab".to_string();
+        let git = Git::new(&full_repo_url, None);
+
+        assert_eq!(git.git_zip_url, CUSTOM_GITLAB_URL)
+    }
+
+    #[test]
+    fn with_with_on_premise_gitlab_repo_url_without_http_scheme_when_deserialize_input_url_then_construct_valid_url(
+    ) {
+        let url_without_scheme = "gitlab.kitware.com/utils/rust-gitlab".to_string();
+        let git = Git::new(&url_without_scheme, None);
+
+        assert_eq!(git.git_zip_url, CUSTOM_GITLAB_URL)
+    }
+
+    #[test]
+    fn with_with_on_premise_gitlab_repo_data_when_deserialize_input_url_then_construct_valid_url() {
+        let repo_data = "gitlab.kitware.com:utils:rust-gitlab".to_string();
+        let git = Git::new(&repo_data, None);
+
+        assert_eq!(git.git_zip_url, CUSTOM_GITLAB_URL)
     }
 
     #[test]
@@ -418,28 +470,3 @@ mod tests {
         Git::new(&repo_data, Some(&optional_branch_name));
     }
 }
-
-//struct CollectorFile(File);
-//impl Handler for CollectorFile {
-//    fn write(&mut self, data_stream: &[u8]) -> Result<usize, WriteError> {
-//        self.0.write_all(data_stream).unwrap();
-//        Ok(data_stream.len())
-//    }
-//}
-
-//#[allow(unused)]
-//fn curl_in_file(url: String) {
-//    let fd = File::create("main.zip").unwrap();
-//    let mut easy = Easy2::new(CollectorFile(fd));
-//
-//    easy.get(true).unwrap();
-//    easy.url(&url).unwrap();
-//    easy.perform().unwrap();
-//    assert_eq!(easy.response_code().unwrap(), 200);
-//
-//    let fd = File::open("main.zip").expect("file error reading");
-//    let buf_reader = BufReader::new(fd);
-//    //for bytes in buf_reader.bytes() {
-//    //    print!("{}", bytes.unwrap())
-//    //}
-//}
