@@ -61,7 +61,6 @@ jobs:
 
       - name: check file presence
         run: |
-          ls -la
           ls -la ../download/*/*.tgz
 
       - name: Generate changelog
@@ -75,7 +74,7 @@ jobs:
           tag_name: ${{ needs.verify_version.outputs.version }}
           draft: true
           fail_on_unmatched_files: true
-          files: download/*/*.tgz
+          files: ../download/*/*.tgz
           body_path: ../auto_changelog.md
 
       - name: Publish release on crates.io
