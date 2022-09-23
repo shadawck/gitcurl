@@ -1,23 +1,23 @@
 //// WORKING URL
-// cgit https://github.com/shadawck/rust-trend
-// cgit https://github.com/shadawck/rust-trend.git
-// cgit github.com/shadawck/rust-trend
-// cgit github.com/shadawck/rust-trendgit
-// cgit shadawck:rust-trend
+// cgit https://github.com/shadawck/gitcurl
+// cgit https://github.com/shadawck/gitcurl.git
+// cgit github.com/shadawck/gitcurl
+// cgit github.com/shadawck/gitcurlgit
+// cgit shadawck:gitcurl
 
 //// OPTIONS
 // -z : ZIP : extract_zip the zip source code but do not extract_zip the zip
 // -o : if -z just rename the zip file; if -extract_zip (default) extract_zip in a specific folder
 // -b : branch name to fetch
 
-// cgit -z shadawck:rust-trend
-// cgit -z shadawck:rust-trend -b dev
+// cgit -z shadawck:gitcurl
+// cgit -z shadawck:gitcurl -b dev
 
-// cgit -z shadawck:rust-trend -o new_zip_name.zip
-// cgit -z shadawck:rust-trend -o new_zip_name
+// cgit -z shadawck:gitcurl -o new_zip_name.zip
+// cgit -z shadawck:gitcurl -o new_zip_name
 
-// cgit -z shadawck:rust-trend -o /tmp/new_zip_name.zip
-// cgit -z shadawck:rust-trend -o ./new_folder/new_zip_name.zip
+// cgit -z shadawck:gitcurl -o /tmp/new_zip_name.zip
+// cgit -z shadawck:gitcurl -o ./new_folder/new_zip_name.zip
 
 use std::fs::{self, File};
 use std::io::{Cursor, Read, Write};
@@ -341,7 +341,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const GITHUB_URL: &str = "https://codeload.github.com/shadawck/rust-trend/zip/refs/heads/main";
+    const GITHUB_URL: &str = "https://codeload.github.com/shadawck/gitcurl/zip/refs/heads/main";
     const GITLAB_URL: &str =
         "https://gitlab.com/Fract/sample-project/-/archive/master/sample-project-master.zip";
     const CUSTOM_GITLAB_URL: &str =
@@ -349,7 +349,7 @@ mod tests {
 
     #[test]
     fn with_github_full_repo_url_when_deserialize_input_url_then_construct_valid_url() {
-        let full_repo_url = "https://github.com/shadawck/rust-trend".to_string();
+        let full_repo_url = "https://github.com/shadawck/gitcurl".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&full_repo_url, Some(&optional_branch_name));
 
@@ -359,7 +359,7 @@ mod tests {
     #[test]
     fn with_github_full_repo_url_and_git_extension_when_deserialize_input_url_then_construct_valid_url(
     ) {
-        let full_repo_url = "https://github.com/shadawck/rust-trend.git".to_string();
+        let full_repo_url = "https://github.com/shadawck/gitcurl.git".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&full_repo_url, Some(&optional_branch_name));
 
@@ -369,7 +369,7 @@ mod tests {
     #[test]
     fn with_github_repo_url_without_http_scheme_when_deserialize_input_url_then_construct_valid_url(
     ) {
-        let url_without_scheme = "github.com/shadawck/rust-trend".to_string();
+        let url_without_scheme = "github.com/shadawck/gitcurl".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&url_without_scheme, Some(&optional_branch_name));
 
@@ -378,7 +378,7 @@ mod tests {
 
     #[test]
     fn with_github_repo_data_when_deserialize_input_url_then_construct_valid_url() {
-        let repo_data = "github:shadawck:rust-trend".to_string();
+        let repo_data = "github:shadawck:gitcurl".to_string();
         let git = Git::new(&repo_data, None);
 
         assert_eq!(git.git_zip_url, GITHUB_URL)
@@ -437,42 +437,73 @@ mod tests {
     #[test]
     #[should_panic]
     fn with_repo_url_without_user_name_when_deserialize_input_url_then_fail() {
-        let repo_data = "https://github.com/rust-trend".to_string();
-        let optional_branch_name = "main".to_string();
-        Git::new(&repo_data, Some(&optional_branch_name));
+        let repo_data = "https://github.com/gitcurl".to_string();
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
     fn with_repo_url_without_repo_name_when_deserialize_input_url_then_fail() {
         let repo_data = "https://github.com/shadawck".to_string();
-        let optional_branch_name = "main".to_string();
-        Git::new(&repo_data, Some(&optional_branch_name));
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
-    fn with_repo_url_github_com_when_deserialize_input_url_then_fail() {
-        let repo_data = "https://shadawck/rust-trend".to_string();
-        let optional_branch_name = "main".to_string();
-        Git::new(&repo_data, Some(&optional_branch_name));
+    fn with_repo_url_without_host_when_deserialize_input_url_then_fail() {
+        let repo_data = "https://shadawck/gitcurl".to_string();
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
     fn with_repo_data_without_user_name_when_deserialize_input_url_then_fail() {
-        let repo_data = ":rust-trend".to_string();
-        let optional_branch_name = "main".to_string();
-
-        Git::new(&repo_data, Some(&optional_branch_name));
+        let repo_data = ":gitcurl".to_string();
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
     fn with_repo_data_without_repo_name_when_deserialize_input_url_then_fail() {
         let repo_data = "shadawck:".to_string();
-        let optional_branch_name = "main".to_string();
+        Git::new(&repo_data, None);
+    }
 
-        Git::new(&repo_data, Some(&optional_branch_name));
+    #[test]
+    fn with_valid_repo_when_curl_in_memory_then_buffer_not_empty() {
+        let repo_data = "https://github.com/shadawck/gitcurl".to_string();
+        let buffer = Git::new(&repo_data, None).curl_in_memory();
+        assert!(!buffer.is_empty())
+    }
+
+    use std::path::PathBuf;
+    #[test]
+    fn with_valid_repo_when_curl_in_memory_then_buffer_can_be_saved_as_zip() {
+        let repo_data = "https://github.com/shadawck/gitcurl".to_string();
+        let git = Git::new(&repo_data, None);
+        let buffer = git.curl_in_memory();
+
+        git.save_zip(buffer, None);
+        let zip = PathBuf::from("main.zip");
+        assert!(zip.is_file());
+    }
+
+    use std::io;
+    #[test]
+    fn with_valid_repo_when_curl_in_memory_then_zip_can_be_extracted() {
+        let repo_data = "https://github.com/shadawck/gitcurl".to_string();
+        let git = Git::new(&repo_data, None);
+        let buffer = git.curl_in_memory();
+
+        git.extract_zip(buffer, None);
+        let extracted_archvive = PathBuf::from("main");
+        assert!(extracted_archvive.is_dir());
+
+        let mut entries = fs::read_dir(extracted_archvive)
+            .unwrap()
+            .map(|res| res.map(|e| e.path()))
+            .collect::<Result<Vec<_>, io::Error>>()
+            .unwrap();
+        assert!(!entries.is_empty())
     }
 }
