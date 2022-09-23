@@ -43,10 +43,6 @@ impl Handler for CollectorMemFile {
     }
 }
 
-#[derive(Debug)]
-struct StringDeserialize(String);
-
-#[derive(Clone, Debug)]
 struct Git<'a> {
     //url: &'a str,
     git_zip_url: String,
@@ -354,6 +350,16 @@ mod tests {
     #[test]
     fn with_github_full_repo_url_when_deserialize_input_url_then_construct_valid_url() {
         let full_repo_url = "https://github.com/shadawck/rust-trend".to_string();
+        let optional_branch_name = "main".to_string();
+        let git = Git::new(&full_repo_url, Some(&optional_branch_name));
+
+        assert_eq!(git.git_zip_url, GITHUB_URL)
+    }
+
+    #[test]
+    fn with_github_full_repo_url_and_git_extension_when_deserialize_input_url_then_construct_valid_url(
+    ) {
+        let full_repo_url = "https://github.com/shadawck/rust-trend.git".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&full_repo_url, Some(&optional_branch_name));
 
