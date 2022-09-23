@@ -57,17 +57,17 @@ jobs:
           workflow: build.yaml
           workflow_conclusion: success
           if_no_artifact_found: fail
-          path: download
+          path: ../download
 
       - name: check file presence
         run: |
           ls -la
-          ls -la download/*/*.tgz
+          ls -la ../download/*/*.tgz
 
       - name: Generate changelog
         run: |
           cargo install convco
-          convco changelog > auto_changelog.md
+          convco changelog > ../auto_changelog.md
 
       - name: Publish github Release
         uses: softprops/action-gh-release@v1
@@ -76,9 +76,9 @@ jobs:
           draft: true
           fail_on_unmatched_files: true
           files: download/*/*.tgz
-          body_path: auto_changelog.md
+          body_path: ../auto_changelog.md
 
       - name: Publish release on crates.io
-        run: cargo publish --token ${CRATES_TOKEN} --allow-dirty
+        run: cargo publish --token ${CRATES_TOKEN}
         env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
