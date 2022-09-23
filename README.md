@@ -27,13 +27,33 @@ For each release, pre-compiled version are available : https://github.com/shadaw
 
 ### How to use gitcurl
 
-Clone a git repository in the current folder.
+Clone a git repository in the current folder:
 
-```bash
-gitcurl https://github.com/shadawck/gitcurl
-# or 
-gitcurl shadawck:gitcurl
-```
+- On github:
+    
+    ```bash
+    gitcurl https://github.com/shadawck/gitcurl
+    # or 
+    gitcurl github:shadawck:gitcurl
+    ```
+
+- Or on Gitlab:
+
+    ```bash
+    gitcurl https://gitlab.com/tezos/tezos
+    # or 
+    gitcurl gitlab:tezos:tezos
+    ```
+
+- Or on premise Gitlab:
+
+    ```bash
+    gitcurl https://gitlab.kitware.com/utils/rust-gitlab
+    # or 
+    gitcurl gitlab.kitware.com:utils:rust-gitlab
+    ```
+
+---
 
 Clone a specific branch of a git repository in the current folder.
 
@@ -41,21 +61,24 @@ Clone a specific branch of a git repository in the current folder.
 gitcurl https://github.com/shadawck/gitcurl -b main
 ```
 
+---
+
 Fetch a zip of the repository.
 
 ```bash
 gitcurl -z https://github.com/shadawck/gitcurl
 ```
 
+---
+
 Output to a specific path.
 
 ```bash
-gitcurl -z https://github.com/shadawck/gitcurl -o /my/clone/path/myzip.zip
-```
-
-```bash
+gitcurl https://github.com/shadawck/gitcurl -z -o /my/clone/path/myzip.zip
 gitcurl https://github.com/shadawck/gitcurl -o /my/clone/path
 ```
+
+---
 
 ## Options
 
