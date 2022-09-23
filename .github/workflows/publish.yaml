@@ -69,7 +69,7 @@ jobs:
           cargo install convco
           convo changelog > auto_changelog.md
 
-      - name: Release
+      - name: Publish github Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.verify_version.outputs.version }}
@@ -77,3 +77,8 @@ jobs:
           fail_on_unmatched_files: true
           files: download/*/*.tgz
           body_path: auto_changelog.md
+
+      - name: Publish release on crates.io
+        run: cargo publish --token ${CRATES_TOKEN}
+        env:
+          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
