@@ -79,6 +79,6 @@ jobs:
           body_path: auto_changelog.md
 
       - name: Publish release on crates.io
-        run: cargo publish --token ${CRATES_TOKEN}
+        run: cargo publish --token ${CRATES_TOKEN} --allow-dirty
         env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
