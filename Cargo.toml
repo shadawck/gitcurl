@@ -10,6 +10,13 @@ homepage = "https://github.com/shadawck/gitcurl"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "git", "curl", "pentest", "utility"]
 categories = ["command-line-utilities"]
+exclude = [
+    ".github/",
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    "commitlint.config.cjs",
+    "CHANGELOG.md",
+]
 
 
 [dependencies]
