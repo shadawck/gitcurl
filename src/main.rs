@@ -1,30 +1,8 @@
-//// WORKING URL
-// cgit https://github.com/shadawck/gitcurl
-// cgit https://github.com/shadawck/gitcurl.git
-// cgit github.com/shadawck/gitcurl
-// cgit github.com/shadawck/gitcurlgit
-// cgit shadawck:gitcurl
-
-//// OPTIONS
-// -z : ZIP : extract_zip the zip source code but do not extract_zip the zip
-// -o : if -z just rename the zip file; if -extract_zip (default) extract_zip in a specific folder
-// -b : branch name to fetch
-
-// cgit -z shadawck:gitcurl
-// cgit -z shadawck:gitcurl -b dev
-
-// cgit -z shadawck:gitcurl -o new_zip_name.zip
-// cgit -z shadawck:gitcurl -o new_zip_name
-
-// cgit -z shadawck:gitcurl -o /tmp/new_zip_name.zip
-// cgit -z shadawck:gitcurl -o ./new_folder/new_zip_name.zip
-
 use std::fs::{self, File};
 use std::io::{Cursor, Read, Write};
 use std::panic::{self};
 
 use clap::{crate_version, value_parser, App, Arg};
-use curl::easy::{Easy2, Handler, WriteError};
 use fs_extra::dir::{move_dir, CopyOptions};
 
 // Helper Type
@@ -33,20 +11,13 @@ type UserName = str;
 type RepoName = str;
 
 static GITHUB_HOST: &str = "github";
-
-struct CollectorMemFile(Vec<u8>);
-
-impl Handler for CollectorMemFile {
-    fn write(&mut self, data_stream: &[u8]) -> Result<usize, WriteError> {
-        self.0.extend_from_slice(data_stream);
-        Ok(data_stream.len())
-    }
-}
+static GITLAB_HOST: &str = "gitlab";
+static GITHUB_CODELOAD: &str = "https://codeload.github.com";
+static GITHUB_DEFAULT_BRANCH: &str = "main";
+static GITLAB_DEFAULT_BRANCH: &str = "master";
 
 struct Git<'a> {
-    //url: &'a str,
     git_zip_url: String,
-    //user_name: &'a str,
     repo_name: &'a str,
     branch_name: &'a str,
 }
@@ -65,8 +36,7 @@ fn check_split_url_length(url: &Vec<&str>, lenght: usize) {
 
 fn handle_git_extenstion(repo_name: &str) -> &str {
     if repo_name.ends_with(".git") {
-        let repo_name = repo_name.split('.').collect::<Vec<&str>>()[0];
-        repo_name
+        repo_name.split('.').collect::<Vec<&str>>()[0]
     } else {
         repo_name
     }
@@ -140,14 +110,12 @@ impl<'a> Git<'a> {
     }
 
     fn build_github_url(user_name: &str, repo_name: &str, branch_name: &str) -> String {
-        let mut git_zip_url = String::from("https://codeload.github.com");
-        git_zip_url.push_str(format!("/{}", user_name).as_str());
-        git_zip_url.push_str(format!("/{}", repo_name).as_str());
-        git_zip_url.push_str(format!("/zip/refs/heads/{}", branch_name).as_str());
-        git_zip_url
+        format!(
+            "{}/{}/{}/zip/refs/heads/{}",
+            GITHUB_CODELOAD, user_name, repo_name, branch_name
+        )
     }
 
-    /// A gitlab repo is hosted on gitlab.com or self-hosted.
     fn build_gitlab_url(
         host_name: &str,
         user_name: &str,
@@ -178,18 +146,14 @@ impl<'a> Git<'a> {
             println!("Could not resolve host !");
         }));
 
-        let response: Vec<u8> = Vec::new();
-        let mut easy = Easy2::new(CollectorMemFile(response));
-        easy.get(true).unwrap();
-        easy.url(git_zip_url).unwrap();
-        easy.perform().unwrap();
+        let resp = ureq::get(git_zip_url).call().unwrap();
         let _ = panic::take_hook();
 
-        check_url_availability(easy.response_code().unwrap());
+        check_url_availability(resp.status().into());
     }
 
     fn handle_hostname(host_name: &HostName) -> &str {
-        if host_name == "gitlab" {
+        if host_name == GITLAB_HOST {
             "gitlab.com"
         } else {
             host_name
@@ -203,9 +167,9 @@ impl<'a> Git<'a> {
             Some(branch) => branch,
             None => {
                 if host_name.starts_with(GITHUB_HOST) {
-                    "main"
+                    GITHUB_DEFAULT_BRANCH
                 } else {
-                    "master"
+                    GITLAB_DEFAULT_BRANCH
                 }
             }
         };
@@ -213,7 +177,6 @@ impl<'a> Git<'a> {
         let host_name = Self::handle_hostname(host_name);
 
         let git_zip_url = Self::build_url(host_name, user_name, repo_name, branch_name);
-        println!("Zip url : {}", git_zip_url);
 
         Self::request_url(&git_zip_url);
 
@@ -225,17 +188,12 @@ impl<'a> Git<'a> {
     }
 
     pub fn curl_in_memory(&self) -> Vec<u8> {
-        let memfile: Vec<u8> = Vec::new();
-        let mut easy = Easy2::new(CollectorMemFile(memfile));
+        let resp = ureq::get(&self.git_zip_url).call().unwrap();
 
-        easy.get(true).unwrap();
-        easy.url(&self.git_zip_url).unwrap();
-        easy.perform().unwrap();
-        assert_eq!(easy.response_code().unwrap(), 200);
-
+        assert_eq!(resp.status(), 200);
         let mut buffer: Vec<u8> = Vec::new();
-        let mut data_stream = easy.get_ref().0.as_slice();
-        data_stream.read_to_end(&mut buffer).unwrap();
+
+        resp.into_reader().read_to_end(&mut buffer).unwrap();
 
         buffer
     }
@@ -320,9 +278,7 @@ fn main() {
         )
         .get_matches();
 
-    let pre_url: String = matches.get_one::<String>("url").unwrap().to_string();
-    let url: &str = pre_url.as_str();
-
+    let url: &str = matches.get_one::<String>("url").unwrap().as_str();
     let branch_name: Option<&String> = matches.get_one("branch");
 
     let git = Git::new(url, branch_name);
@@ -499,7 +455,7 @@ mod tests {
         let extracted_archvive = PathBuf::from("main");
         assert!(extracted_archvive.is_dir());
 
-        let mut entries = fs::read_dir(extracted_archvive)
+        let entries = fs::read_dir(extracted_archvive)
             .unwrap()
             .map(|res| res.map(|e| e.path()))
             .collect::<Result<Vec<_>, io::Error>>()
