@@ -203,25 +203,25 @@ impl<'a> Git<'a> {
         let mut zip_archive = zip::ZipArchive::new(data_stream).unwrap();
 
         let file_name = match optional_file_name {
-            Some(filename) => filename,
-            None => self.branch_name,
+            Some(filename) => filename.to_string(),
+            None => format!("{}_{}", self.repo_name, self.branch_name),
         };
 
-        zip_archive.extract(file_name).unwrap();
+        println!("Extracting archive to : {}", &file_name);
+        zip_archive.extract(&file_name).unwrap();
 
         let mut options = CopyOptions::new();
         options.overwrite = true;
         options.copy_inside = true;
 
-        let source_dir = format!("{}/{}-{}", file_name, self.repo_name, self.branch_name);
+        let source_dir = format!("{}/{}-{}", &file_name, self.repo_name, self.branch_name);
 
         move_dir(source_dir, "tmp", &options).unwrap();
-        fs::remove_dir_all(file_name).unwrap();
-        fs::rename("tmp", file_name).unwrap();
+        fs::remove_dir_all(&file_name).unwrap();
+        fs::rename("tmp", &file_name).unwrap();
     }
 
     fn save_zip(&self, raw_compressed_data: Vec<u8>, optional_file_name: Option<&String>) {
-        // Unused if Some(_)
         let default_zip_name = format!("{}.zip", self.branch_name);
         let file_name = match optional_file_name {
             Some(filename) => filename,
@@ -243,7 +243,7 @@ fn main() {
         .arg(
             Arg::new("url")
                 .value_name("URL")
-                .help("Github link or just <user_name_name>:<repo_name>")
+                .help("Github | Gitlab link or just <host>:<user_name_name>:<repo_name>")
                 .takes_value(true)
                 .forbid_empty_values(true)
                 .value_parser(value_parser!(String))
