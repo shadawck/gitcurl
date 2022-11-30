@@ -1,0 +1,56 @@
+[package]
+name = "gitcurl"
+version = "0.2.0"
+edition = "2021"
+authors = ["shadawck <shadawck@protonmail.com>"]
+description = "Clone a directory without using Git but using Curl"
+readme = "./README.md"
+repository = "https://github.com/shadawck/gitcurl"
+homepage = "https://github.com/shadawck/gitcurl"
+license = "MIT OR Apache-2.0"
+keywords = ["cli", "git", "curl", "pentest", "utility"]
+categories = ["command-line-utilities"]
+exclude = [
+    ".github/",
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    "commitlint.config.cjs",
+    "CHANGELOG.md",
+]
+
+
+[dependencies]
+clap = { version = "3.2.22", features = ["cargo"] }
+fs_extra = "1.2.0"
+http = "0.2.8"
+zip = "0.6.2"
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }-v{ version }.{ archive-format }"
+bin-dir = "{ name }-{ target }-v{ version }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+### LINUX
+[target.x86_64-unknown-linux-gnu.dependencies]
+curl = "0.4.44"
+
+[target.aarch64-unknown-linux-gnu.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+[target.x86_64-unknown-linux-musl.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+[target.aarch64-unknown-linux-musl.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+[target.armv7-unknown-linux-gnueabihf.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+### MACOS
+[target.'cfg(target_os = "macos")'.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
+
+
+### WINDOWS
+[target.'cfg(target_os = "windows")'.dependencies]
+curl = { version = "0.4.44", default-features = false, features = ["rustls"] }
