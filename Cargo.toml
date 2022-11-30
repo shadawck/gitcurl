@@ -1,6 +1,6 @@
 [package]
 name = "gitcurl"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["shadawck <shadawck@protonmail.com>"]
 description = "Clone a directory without using Git but using Curl"
@@ -22,7 +22,7 @@ exclude = [
 [dependencies]
 clap = { version = "3.2.22", features = ["cargo"] }
 fs_extra = "1.2.0"
-http = "0.2.8"
+ureq = { version = "2.5.0", default-features = false, features = ["tls"] }
 zip = "0.6.2"
 
 [package.metadata.binstall]
@@ -31,8 +31,8 @@ bin-dir = "{ name }-{ target }-v{ version }/{ bin }{ binary-ext }"
 pkg-fmt = "tgz"
 
 ### LINUX
-[target.x86_64-unknown-linux-gnu.dependencies]
-curl = "0.4.44"
+#[target.x86_64-unknown-linux-gnu.dependencies]
+#curl = "0.4.44"
 
 [target.aarch64-unknown-linux-gnu.dependencies]
 curl = { version = "0.4.44", default-features = false, features = ["rustls"] }

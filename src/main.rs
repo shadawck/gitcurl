@@ -1,30 +1,8 @@
-//// WORKING URL
-// cgit https://github.com/shadawck/rust-trend
-// cgit https://github.com/shadawck/rust-trend.git
-// cgit github.com/shadawck/rust-trend
-// cgit github.com/shadawck/rust-trendgit
-// cgit shadawck:rust-trend
-
-//// OPTIONS
-// -z : ZIP : extract_zip the zip source code but do not extract_zip the zip
-// -o : if -z just rename the zip file; if -extract_zip (default) extract_zip in a specific folder
-// -b : branch name to fetch
-
-// cgit -z shadawck:rust-trend
-// cgit -z shadawck:rust-trend -b dev
-
-// cgit -z shadawck:rust-trend -o new_zip_name.zip
-// cgit -z shadawck:rust-trend -o new_zip_name
-
-// cgit -z shadawck:rust-trend -o /tmp/new_zip_name.zip
-// cgit -z shadawck:rust-trend -o ./new_folder/new_zip_name.zip
-
 use std::fs::{self, File};
 use std::io::{Cursor, Read, Write};
 use std::panic::{self};
 
 use clap::{crate_version, value_parser, App, Arg};
-use curl::easy::{Easy2, Handler, WriteError};
 use fs_extra::dir::{move_dir, CopyOptions};
 
 // Helper Type
@@ -33,24 +11,13 @@ type UserName = str;
 type RepoName = str;
 
 static GITHUB_HOST: &str = "github";
+static GITLAB_HOST: &str = "gitlab";
+static GITHUB_CODELOAD: &str = "https://codeload.github.com";
+static GITHUB_DEFAULT_BRANCH: &str = "main";
+static GITLAB_DEFAULT_BRANCH: &str = "master";
 
-struct CollectorMemFile(Vec<u8>);
-
-impl Handler for CollectorMemFile {
-    fn write(&mut self, data_stream: &[u8]) -> Result<usize, WriteError> {
-        self.0.extend_from_slice(data_stream);
-        Ok(data_stream.len())
-    }
-}
-
-#[derive(Debug)]
-struct StringDeserialize(String);
-
-#[derive(Clone, Debug)]
 struct Git<'a> {
-    //url: &'a str,
     git_zip_url: String,
-    //user_name: &'a str,
     repo_name: &'a str,
     branch_name: &'a str,
 }
@@ -69,8 +36,7 @@ fn check_split_url_length(url: &Vec<&str>, lenght: usize) {
 
 fn handle_git_extenstion(repo_name: &str) -> &str {
     if repo_name.ends_with(".git") {
-        let repo_name = repo_name.split('.').collect::<Vec<&str>>()[0];
-        repo_name
+        repo_name.split('.').collect::<Vec<&str>>()[0]
     } else {
         repo_name
     }
@@ -144,14 +110,12 @@ impl<'a> Git<'a> {
     }
 
     fn build_github_url(user_name: &str, repo_name: &str, branch_name: &str) -> String {
-        let mut git_zip_url = String::from("https://codeload.github.com");
-        git_zip_url.push_str(format!("/{}", user_name).as_str());
-        git_zip_url.push_str(format!("/{}", repo_name).as_str());
-        git_zip_url.push_str(format!("/zip/refs/heads/{}", branch_name).as_str());
-        git_zip_url
+        format!(
+            "{}/{}/{}/zip/refs/heads/{}",
+            GITHUB_CODELOAD, user_name, repo_name, branch_name
+        )
     }
 
-    /// A gitlab repo is hosted on gitlab.com or self-hosted.
     fn build_gitlab_url(
         host_name: &str,
         user_name: &str,
@@ -182,18 +146,14 @@ impl<'a> Git<'a> {
             println!("Could not resolve host !");
         }));
 
-        let response: Vec<u8> = Vec::new();
-        let mut easy = Easy2::new(CollectorMemFile(response));
-        easy.get(true).unwrap();
-        easy.url(git_zip_url).unwrap();
-        easy.perform().unwrap();
+        let resp = ureq::get(git_zip_url).call().unwrap();
         let _ = panic::take_hook();
 
-        check_url_availability(easy.response_code().unwrap());
+        check_url_availability(resp.status().into());
     }
 
     fn handle_hostname(host_name: &HostName) -> &str {
-        if host_name == "gitlab" {
+        if host_name == GITLAB_HOST {
             "gitlab.com"
         } else {
             host_name
@@ -207,9 +167,9 @@ impl<'a> Git<'a> {
             Some(branch) => branch,
             None => {
                 if host_name.starts_with(GITHUB_HOST) {
-                    "main"
+                    GITHUB_DEFAULT_BRANCH
                 } else {
-                    "master"
+                    GITLAB_DEFAULT_BRANCH
                 }
             }
         };
@@ -217,7 +177,6 @@ impl<'a> Git<'a> {
         let host_name = Self::handle_hostname(host_name);
 
         let git_zip_url = Self::build_url(host_name, user_name, repo_name, branch_name);
-        println!("Zip url : {}", git_zip_url);
 
         Self::request_url(&git_zip_url);
 
@@ -229,17 +188,12 @@ impl<'a> Git<'a> {
     }
 
     pub fn curl_in_memory(&self) -> Vec<u8> {
-        let memfile: Vec<u8> = Vec::new();
-        let mut easy = Easy2::new(CollectorMemFile(memfile));
+        let resp = ureq::get(&self.git_zip_url).call().unwrap();
 
-        easy.get(true).unwrap();
-        easy.url(&self.git_zip_url).unwrap();
-        easy.perform().unwrap();
-        assert_eq!(easy.response_code().unwrap(), 200);
-
+        assert_eq!(resp.status(), 200);
         let mut buffer: Vec<u8> = Vec::new();
-        let mut data_stream = easy.get_ref().0.as_slice();
-        data_stream.read_to_end(&mut buffer).unwrap();
+
+        resp.into_reader().read_to_end(&mut buffer).unwrap();
 
         buffer
     }
@@ -249,25 +203,25 @@ impl<'a> Git<'a> {
         let mut zip_archive = zip::ZipArchive::new(data_stream).unwrap();
 
         let file_name = match optional_file_name {
-            Some(filename) => filename,
-            None => self.branch_name,
+            Some(filename) => filename.to_string(),
+            None => format!("{}_{}", self.repo_name, self.branch_name),
         };
 
-        zip_archive.extract(file_name).unwrap();
+        println!("Extracting archive to : {}", &file_name);
+        zip_archive.extract(&file_name).unwrap();
 
         let mut options = CopyOptions::new();
         options.overwrite = true;
         options.copy_inside = true;
 
-        let source_dir = format!("{}/{}-{}", file_name, self.repo_name, self.branch_name);
+        let source_dir = format!("{}/{}-{}", &file_name, self.repo_name, self.branch_name);
 
         move_dir(source_dir, "tmp", &options).unwrap();
-        fs::remove_dir_all(file_name).unwrap();
-        fs::rename("tmp", file_name).unwrap();
+        fs::remove_dir_all(&file_name).unwrap();
+        fs::rename("tmp", &file_name).unwrap();
     }
 
     fn save_zip(&self, raw_compressed_data: Vec<u8>, optional_file_name: Option<&String>) {
-        // Unused if Some(_)
         let default_zip_name = format!("{}.zip", self.branch_name);
         let file_name = match optional_file_name {
             Some(filename) => filename,
@@ -289,7 +243,7 @@ fn main() {
         .arg(
             Arg::new("url")
                 .value_name("URL")
-                .help("Github link or just <user_name_name>:<repo_name>")
+                .help("Github | Gitlab link or just <host>:<user_name_name>:<repo_name>")
                 .takes_value(true)
                 .forbid_empty_values(true)
                 .value_parser(value_parser!(String))
@@ -324,9 +278,7 @@ fn main() {
         )
         .get_matches();
 
-    let pre_url: String = matches.get_one::<String>("url").unwrap().to_string();
-    let url: &str = pre_url.as_str();
-
+    let url: &str = matches.get_one::<String>("url").unwrap().as_str();
     let branch_name: Option<&String> = matches.get_one("branch");
 
     let git = Git::new(url, branch_name);
@@ -345,7 +297,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const GITHUB_URL: &str = "https://codeload.github.com/shadawck/rust-trend/zip/refs/heads/main";
+    const GITHUB_URL: &str = "https://codeload.github.com/shadawck/gitcurl/zip/refs/heads/main";
     const GITLAB_URL: &str =
         "https://gitlab.com/Fract/sample-project/-/archive/master/sample-project-master.zip";
     const CUSTOM_GITLAB_URL: &str =
@@ -353,7 +305,17 @@ mod tests {
 
     #[test]
     fn with_github_full_repo_url_when_deserialize_input_url_then_construct_valid_url() {
-        let full_repo_url = "https://github.com/shadawck/rust-trend".to_string();
+        let full_repo_url = "https://github.com/shadawck/gitcurl".to_string();
+        let optional_branch_name = "main".to_string();
+        let git = Git::new(&full_repo_url, Some(&optional_branch_name));
+
+        assert_eq!(git.git_zip_url, GITHUB_URL)
+    }
+
+    #[test]
+    fn with_github_full_repo_url_and_git_extension_when_deserialize_input_url_then_construct_valid_url(
+    ) {
+        let full_repo_url = "https://github.com/shadawck/gitcurl.git".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&full_repo_url, Some(&optional_branch_name));
 
@@ -363,7 +325,7 @@ mod tests {
     #[test]
     fn with_github_repo_url_without_http_scheme_when_deserialize_input_url_then_construct_valid_url(
     ) {
-        let url_without_scheme = "github.com/shadawck/rust-trend".to_string();
+        let url_without_scheme = "github.com/shadawck/gitcurl".to_string();
         let optional_branch_name = "main".to_string();
         let git = Git::new(&url_without_scheme, Some(&optional_branch_name));
 
@@ -372,7 +334,7 @@ mod tests {
 
     #[test]
     fn with_github_repo_data_when_deserialize_input_url_then_construct_valid_url() {
-        let repo_data = "github:shadawck:rust-trend".to_string();
+        let repo_data = "github:shadawck:gitcurl".to_string();
         let git = Git::new(&repo_data, None);
 
         assert_eq!(git.git_zip_url, GITHUB_URL)
@@ -431,42 +393,73 @@ mod tests {
     #[test]
     #[should_panic]
     fn with_repo_url_without_user_name_when_deserialize_input_url_then_fail() {
-        let repo_data = "https://github.com/rust-trend".to_string();
-        let optional_branch_name = "main".to_string();
-        Git::new(&repo_data, Some(&optional_branch_name));
+        let repo_data = "https://github.com/gitcurl".to_string();
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
     fn with_repo_url_without_repo_name_when_deserialize_input_url_then_fail() {
         let repo_data = "https://github.com/shadawck".to_string();
-        let optional_branch_name = "main".to_string();
-        Git::new(&repo_data, Some(&optional_branch_name));
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
-    fn with_repo_url_github_com_when_deserialize_input_url_then_fail() {
-        let repo_data = "https://shadawck/rust-trend".to_string();
-        let optional_branch_name = "main".to_string();
-        Git::new(&repo_data, Some(&optional_branch_name));
+    fn with_repo_url_without_host_when_deserialize_input_url_then_fail() {
+        let repo_data = "https://shadawck/gitcurl".to_string();
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
     fn with_repo_data_without_user_name_when_deserialize_input_url_then_fail() {
-        let repo_data = ":rust-trend".to_string();
-        let optional_branch_name = "main".to_string();
-
-        Git::new(&repo_data, Some(&optional_branch_name));
+        let repo_data = ":gitcurl".to_string();
+        Git::new(&repo_data, None);
     }
 
     #[test]
     #[should_panic]
     fn with_repo_data_without_repo_name_when_deserialize_input_url_then_fail() {
         let repo_data = "shadawck:".to_string();
-        let optional_branch_name = "main".to_string();
+        Git::new(&repo_data, None);
+    }
 
-        Git::new(&repo_data, Some(&optional_branch_name));
+    #[test]
+    fn with_valid_repo_when_curl_in_memory_then_buffer_not_empty() {
+        let repo_data = "https://github.com/shadawck/gitcurl".to_string();
+        let buffer = Git::new(&repo_data, None).curl_in_memory();
+        assert!(!buffer.is_empty())
+    }
+
+    use std::path::PathBuf;
+    #[test]
+    fn with_valid_repo_when_curl_in_memory_then_buffer_can_be_saved_as_zip() {
+        let repo_data = "https://github.com/shadawck/gitcurl".to_string();
+        let git = Git::new(&repo_data, None);
+        let buffer = git.curl_in_memory();
+
+        git.save_zip(buffer, None);
+        let zip = PathBuf::from("main.zip");
+        assert!(zip.is_file());
+    }
+
+    use std::io;
+    #[test]
+    fn with_valid_repo_when_curl_in_memory_then_zip_can_be_extracted() {
+        let repo_data = "https://github.com/shadawck/gitcurl".to_string();
+        let git = Git::new(&repo_data, None);
+        let buffer = git.curl_in_memory();
+
+        git.extract_zip(buffer, None);
+        let extracted_archvive = PathBuf::from("gitcurl_main");
+        assert!(extracted_archvive.is_dir());
+
+        let entries = fs::read_dir(extracted_archvive)
+            .unwrap()
+            .map(|res| res.map(|e| e.path()))
+            .collect::<Result<Vec<_>, io::Error>>()
+            .unwrap();
+        assert!(!entries.is_empty())
     }
 }
